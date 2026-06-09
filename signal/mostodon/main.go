@@ -6,8 +6,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/fzerorubigd/life-tracker/internal/cli"
-	"github.com/fzerorubigd/life-tracker/internal/fetch"
+	"github.com/fzerorubigd/dead-man-switch/internal/cli"
+	"github.com/fzerorubigd/dead-man-switch/internal/fetch"
 )
 
 type Rss struct {

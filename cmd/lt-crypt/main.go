@@ -1,4 +1,4 @@
-// Command lt-crypt is the operator-side helper for life-tracker's
+// Command lt-crypt is the operator-side helper for dead-man-switch's
 // encrypted death-key blobs. It encrypts a payload (e.g. the recipient
 // list or a death-action config) to the operator's GPG public key, and
 // decrypts a blob with the private key — the same operation the trigger
@@ -15,7 +15,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/fzerorubigd/life-tracker/internal/crypt"
+	"github.com/fzerorubigd/dead-man-switch/internal/crypt"
 )
 
 const defaultPubKeyPath = "pubkey/operator.asc"

@@ -26,7 +26,7 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/fzerorubigd/life-tracker/handler"
+	"github.com/fzerorubigd/dead-man-switch/handler"
 )
 
 // Recipient is one entry in the decrypted recipient list.

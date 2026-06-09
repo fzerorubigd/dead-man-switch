@@ -34,7 +34,7 @@ jobs:
             echo "::error::GPG_PRIVATE_KEY secret is not set"
             exit 1
           fi
-          plaintext="life-tracker crypt sanity $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          plaintext="dead-man-switch crypt sanity $(date -u +%Y-%m-%dT%H:%M:%SZ)"
           printf '%s' "$plaintext" > plain.txt
           go run ./cmd/lt-crypt encrypt --pubkey pubkey/operator.asc --in plain.txt --out cipher.gpg
           go run ./cmd/lt-crypt decrypt --in cipher.gpg --out decrypted.txt

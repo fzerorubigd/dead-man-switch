@@ -11,7 +11,7 @@ import (
 	"github.com/google/go-github/v53/github"
 	"golang.org/x/oauth2"
 
-	"github.com/fzerorubigd/life-tracker/internal/dmstate"
+	"github.com/fzerorubigd/dead-man-switch/internal/dmstate"
 )
 
 // wfPattern selects the life-signal workflows: every workflow whose file
@@ -71,7 +71,7 @@ func collectSignalRuns(ctx context.Context, gh *github.Client, owner, repo strin
 
 func main() {
 	owner := getEnvDefault("REPOSITORY_OWNER", "fzerorubigd")
-	repo := getEnvDefault("REPOSITORY_NAME", "life-tracker")
+	repo := getEnvDefault("REPOSITORY_NAME", "dead-man-switch")
 	reset := os.Getenv("RESET") == "true"
 	cfg := configFromEnv()
 

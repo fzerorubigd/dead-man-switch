@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/fzerorubigd/gobgg"
-	"github.com/fzerorubigd/life-tracker/internal/cli"
+	"github.com/fzerorubigd/dead-man-switch/internal/cli"
 )
 
 func main() {

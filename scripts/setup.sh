@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# scripts/setup.sh — interactive secret + variable setup for life-tracker.
+# scripts/setup.sh — interactive secret + variable setup for dead-man-switch.
 #
 # Walks through the required secrets + variables and fires `gh secret set` /
 # `gh variable set` per item. Assumes `gh` is installed and authenticated for
@@ -7,11 +7,11 @@
 # untouched.
 #
 # Usage: ./scripts/setup.sh [owner/repo]
-#   defaults to fzerorubigd/life-tracker if no repo given.
+#   defaults to fzerorubigd/dead-man-switch if no repo given.
 
 set -euo pipefail
 
-REPO="${1:-fzerorubigd/life-tracker}"
+REPO="${1:-fzerorubigd/dead-man-switch}"
 
 if ! command -v gh >/dev/null 2>&1; then
   echo "error: gh CLI not found in PATH" >&2
@@ -22,7 +22,7 @@ if ! gh auth status >/dev/null 2>&1; then
   exit 1
 fi
 
-echo "life-tracker setup → $REPO"
+echo "dead-man-switch setup → $REPO"
 echo "skip any prompt with empty input to leave the existing value untouched."
 echo
 

@@ -1,5 +1,5 @@
 // Package crypt provides OpenPGP (GPG) encryption helpers for
-// life-tracker's death-key blobs: the operator encrypts payloads to
+// dead-man-switch's death-key blobs: the operator encrypts payloads to
 // their public key locally, and the trigger layer decrypts them at
 // runtime with the private key supplied via a GitHub secret.
 //

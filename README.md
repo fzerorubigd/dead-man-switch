@@ -1,4 +1,4 @@
-# life-tracker
+# dead-man-switch
 
 A self-hosted **dead-man's switch** built on GitHub Actions.
 
@@ -60,13 +60,13 @@ Key-Type: EDDSA
 Key-Curve: ed25519
 Subkey-Type: ECDH
 Subkey-Curve: cv25519
-Name-Real: life-tracker dead-man-switch
-Name-Email: lifetracker+nokey@local
+Name-Real: dead-man-switch
+Name-Email: dms+nokey@local
 Expire-Date: 0
 %commit
 EOF
 
-KEYID=$(gpg --list-keys --with-colons lifetracker+nokey@local | awk -F: '/^pub:/ {print $5; exit}')
+KEYID=$(gpg --list-keys --with-colons dms+nokey@local | awk -F: '/^pub:/ {print $5; exit}')
 gpg --armor --export $KEYID > pubkey/operator.asc           # commit this
 gpg --armor --export-secret-keys $KEYID > /tmp/death-key.asc  # for the GH secret
 ```
@@ -78,14 +78,14 @@ Commit `pubkey/operator.asc`. The secret install is the next step.
 Use the interactive helper:
 
 ```sh
-./scripts/setup.sh                          # defaults to fzerorubigd/life-tracker
+./scripts/setup.sh                          # defaults to fzerorubigd/dead-man-switch
 ./scripts/setup.sh <owner/repo>             # for a fork
 ```
 
 The script asks for each value and uses `gh secret set` / `gh variable set` per item. Press enter on any prompt to skip (keep existing) or accept the default. Then install the GPG secret manually:
 
 ```sh
-gh secret set GPG_PRIVATE_KEY --repo fzerorubigd/life-tracker < /tmp/death-key.asc
+gh secret set GPG_PRIVATE_KEY --repo fzerorubigd/dead-man-switch < /tmp/death-key.asc
 shred -u /tmp/death-key.asc
 ```
 

@@ -3,7 +3,7 @@ package main
 import (
 	"time"
 
-	"github.com/fzerorubigd/life-tracker/internal/dmstate"
+	"github.com/fzerorubigd/dead-man-switch/internal/dmstate"
 )
 
 // Transition advances the dead-man-switch state machine. It is pure: no

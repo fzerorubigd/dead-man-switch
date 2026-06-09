@@ -1,4 +1,4 @@
-module github.com/fzerorubigd/life-tracker
+module github.com/fzerorubigd/dead-man-switch
 
 go 1.25.0
 
