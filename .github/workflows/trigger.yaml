@@ -4,6 +4,12 @@ name: trigger
 # death actions when the aggregate has marked the state trigger_ready.
 # Deliberately not named "*-check.yaml" so the aggregate does not count it
 # as a life signal.
+#
+# The encrypted payloads + actions.json live in a sibling private repo
+# (named via the BLOBS_REPO secret) so the ciphertext never sits in a
+# public history where it could be harvested for a future
+# decrypt-the-past attack. The deploy key in BLOBS_DEPLOY_KEY is
+# read-only scoped to that one repo.
 
 on:
   workflow_dispatch:
@@ -18,11 +24,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - uses: actions/checkout@v6
+        with:
+          repository: ${{ secrets.BLOBS_REPO }}
+          ssh-key: ${{ secrets.BLOBS_DEPLOY_KEY }}
+          path: blobs
+          ref: main
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
       - run: go run ./trigger
         env:
+          ACTIONS_FILE: blobs/actions.json
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           # email death-action handler (#6) configuration

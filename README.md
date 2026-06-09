@@ -14,29 +14,38 @@ This started years ago. My brother died, and years later I found his stash of me
 
 ## Architecture
 
+The system spans **two repos**: a public code repo (this one) and a private sibling that holds only the encrypted payloads. The public side runs the signal probes, the aggregate evaluator, and the trigger workflow. The trigger fetches the encrypted blobs from the private sibling at runtime via a read-only SSH deploy key, decrypts in memory with the GPG secret, and dispatches the death actions. Nothing decrypts on disk; the ciphertext never sits in public history.
+
 ```
-signal/         one package per life-signal source (idlerpg, mostodon, bggplays, ...)
-aggregate/      reads workflow run history via the GitHub API; threshold + waiting-period evaluator
-trigger/        consumes the trigger_ready state, decrypts payloads, dispatches handlers
-handler/        death-action handlers (email, ...) — each registers itself by name
-  email/        the first concrete handler: SMTP send with per-recipient template + isolation + rate-limit
-statuspage/     renders the public alive/waiting/triggered HTML page (gh-pages)
-internal/
-  cli/          signal-aware root context
-  fetch/        small HTTP fetch helpers
-  crypt/        OpenPGP encrypt/decrypt
-  dmstate/      shared state machine type + state-branch load/save
-cmd/lt-crypt/   operator CLI to encrypt/decrypt payload blobs locally
-pubkey/         the operator's GPG public key (operator.asc), used for encrypting blobs
-scripts/        operator helpers (setup.sh)
-.github/workflows/
-  *-check.yaml      one per signal (cron)
-  aggregate.yaml    reads signals, evaluates threshold, writes state.json
-  trigger.yaml      daily poll, fires handlers when state==trigger_ready
-  statuspage.yaml   weekly, force-pushes public/ to gh-pages
-  crypt-sanity.yaml end-to-end encrypt→decrypt round-trip self-check
-  email-test.yaml   dispatch-only: send a test email to operator-self with intended-recipient footer
-  keepalive-digest.yaml  weekly digest to operator-self (SMTP keep-warm + credential-rot check)
+<owner>/dead-man-switch             (public, this repo: code + workflows + pubkey)
+  signal/                        one package per life-signal source (idlerpg, mostodon, bggplays, ...)
+  aggregate/                     reads workflow run history; threshold + waiting-period evaluator
+  trigger/                       consumes trigger_ready state, decrypts payloads, dispatches handlers
+  handler/                       death-action handlers (email, ...); each registers itself by name
+    email/                       the first concrete handler: SMTP send with per-recipient template + isolation + rate-limit
+  statuspage/                    renders the alive/waiting/triggered HTML page (gh-pages)
+  digest/                        weekly keep-alive digest mailer
+  internal/
+    crypt/                       OpenPGP encrypt/decrypt
+    dmstate/                     shared state machine type + state-branch load/save
+    cli/, fetch/                 small shared helpers
+  cmd/lt-crypt/                  operator CLI to encrypt/decrypt payload blobs locally
+  pubkey/operator.asc            the operator's GPG public key (used to encrypt blobs)
+  scripts/                       operator helpers (setup.sh)
+  .github/workflows/
+    *-check.yaml                 one per life signal (cron)
+    aggregate.yaml               evaluates signals, writes state.json
+    trigger.yaml                 daily poll, fires handlers when state==trigger_ready
+    statuspage.yaml              weekly, force-pushes public/ to gh-pages
+    crypt-sanity.yaml            end-to-end encrypt→decrypt round-trip self-check
+    email-test.yaml              dispatch-only: send a test email to operator-self
+    keepalive-digest.yaml        weekly digest to operator-self (SMTP keep-warm + credential-rot)
+    tests.yaml                   go build / vet / test -race on every PR + push
+
+<owner>/<sibling>                (PRIVATE, fetched at runtime by trigger / email-test / keepalive-digest)
+  operator-self.gpg              encrypted {email, name} of the operator
+  recipients/*.gpg               encrypted recipient lists + message templates
+  actions.json                   { handler, payload_file } wiring; paths resolve relative to this file
 ```
 
 ## Flow
@@ -48,6 +57,8 @@ scripts/        operator helpers (setup.sh)
 5. **Keep-alive digest** mails the operator weekly (Mon 12:00 UTC) with status + last-signal + per-signal pass/fail. Doubles as SMTP keep-warm + credential-rot check.
 
 ## Setup
+
+The system needs two repos before anything else. Fork or clone this repo as your public side, and create a separate **private** repo of any name for the encrypted blobs. Empty is fine; step 4 below seeds it. Wire-up between the two is via a deploy key configured in step 3, so the names don't have to match.
 
 ### 1. Generate the project keypair (local, one-time)
 
@@ -91,17 +102,42 @@ shred -u /tmp/death-key.asc
 
 Keep an offline backup of the private key (paperless / password manager) separate from GitHub, in case the GH secret is lost.
 
-### 3. Encrypt payload blobs
+### 3. Wire the private blobs repo to the public one
 
-The recipient list and operator-self blob are GPG-encrypted with `pubkey/operator.asc`, committed alongside the code:
+The private sibling holds the encrypted payloads + `actions.json` so ciphertext never sits in public history (where a future quantum adversary could harvest it). The public repo fetches from it at runtime via a read-only SSH deploy key; the sibling's identity is also kept as a secret so the public workflow YAML doesn't name it.
 
 ```sh
+PUBLIC_REPO="<owner>/dead-man-switch"
+PRIVATE_REPO="<owner>/<your-private-blobs-repo>"   # created at the very start
+
+# generate a deploy keypair locally
+ssh-keygen -t ed25519 -f /tmp/lt-blobs -N "" -C "dead-man-switch blobs deploy key"
+
+# public half → read-only deploy key on the PRIVATE repo
+gh repo deploy-key add /tmp/lt-blobs.pub --repo "$PRIVATE_REPO" --title "dead-man-switch reader"
+
+# private half → secret on the PUBLIC repo
+gh secret set BLOBS_DEPLOY_KEY --repo "$PUBLIC_REPO" < /tmp/lt-blobs
+shred -u /tmp/lt-blobs
+
+# tell the workflows which repo to fetch blobs from
+gh secret set BLOBS_REPO --repo "$PUBLIC_REPO" --body "$PRIVATE_REPO"
+```
+
+### 4. Encrypt + commit payload blobs (to the private repo)
+
+The `lt-crypt encrypt` calls below read `pubkey/operator.asc` from the public repo and write ciphertext into the private repo's working tree. Nothing decryptable is ever written to the public side.
+
+```sh
+git clone "git@github.com:$PRIVATE_REPO" /tmp/lt-private
+cd /tmp/lt-private
+
 # operator-self (used by test-mode To-override + keep-alive digest)
 echo '{"email":"you@example.com","name":"Your Name"}' \
-  | go run ./cmd/lt-crypt encrypt --in /dev/stdin --out operator-self.gpg
+  | go run github.com/fzerorubigd/dead-man-switch/cmd/lt-crypt encrypt --in /dev/stdin --out operator-self.gpg
 
-# recipient list for the email death-action
-cat <<'EOF' | go run ./cmd/lt-crypt encrypt --in /dev/stdin --out recipients.gpg
+# recipient list for the email death-action — one file per recipient (or grouped)
+cat <<'EOF' | go run github.com/fzerorubigd/dead-man-switch/cmd/lt-crypt encrypt --in /dev/stdin --out recipients/1.gpg
 [
   {
     "email": "friend1@example.com",
@@ -111,22 +147,19 @@ cat <<'EOF' | go run ./cmd/lt-crypt encrypt --in /dev/stdin --out recipients.gpg
 ]
 EOF
 
-git add operator-self.gpg recipients.gpg
-git commit -m "ops: encrypted recipient + operator-self blobs"
+# wire the death actions — payload paths resolve relative to actions.json
+cat > actions.json <<'EOF'
+[
+  { "handler": "email", "payload_file": "recipients/1.gpg" }
+]
+EOF
+
+git add operator-self.gpg recipients actions.json
+git commit -m "ops: encrypted blobs + actions wiring"
 git push
 ```
 
 Templates render `{{.Name}}`, `{{.Email}}`, `{{.Date}}`, `{{.Operator}}`.
-
-### 4. Wire `actions.json`
-
-```json
-[
-  { "handler": "email", "payload_file": "recipients.gpg" }
-]
-```
-
-Commit + push.
 
 ### 5. Enable GitHub Pages (after making the repo public)
 
@@ -143,6 +176,8 @@ Settings → Pages → Source = "Deploy from a branch" → Branch = `gh-pages` /
 | name | kind | description |
 |------|------|-------------|
 | `GPG_PRIVATE_KEY` | secret | ASCII-armored private half of the project keypair (the "death key"). |
+| `BLOBS_DEPLOY_KEY` | secret | SSH private key for read-only access to the private blobs repo. |
+| `BLOBS_REPO` | secret | `<owner>/<repo>` of the private blobs sibling (kept as a secret so its identity is not in the public workflow YAML). |
 | `SMTP_HOST` | secret | e.g. `smtp.gmail.com`. |
 | `SMTP_USERNAME` | secret | SMTP login (gmail address). |
 | `SMTP_PASSWORD` | secret | Gmail **app password**, not your account password. |

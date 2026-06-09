@@ -19,11 +19,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - uses: actions/checkout@v6
+        with:
+          repository: ${{ secrets.BLOBS_REPO }}
+          ssh-key: ${{ secrets.BLOBS_DEPLOY_KEY }}
+          path: blobs
+          ref: main
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
       - run: go run ./digest
         env:
+          OPERATOR_SELF_BLOB: blobs/operator-self.gpg
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           EMAIL_SUBJECT: "dead-man-switch keep-alive digest"
