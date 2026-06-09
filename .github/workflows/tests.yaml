@@ -1,0 +1,29 @@
+name: tests
+
+# Go build + vet + test on every PR and every push to master.
+#
+# NOTE: this file is deliberately NOT named "*-check.yaml" — the aggregate
+# evaluator treats every "*-check.yaml" workflow as a life signal, and this
+# is CI, not a life signal.
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - run: go build ./...
+      - run: go vet ./...
+      - run: go test -race -count=1 ./...

@@ -1,0 +1,40 @@
+name: status page
+
+# Weekly: render the public alive-or-dead page from the persisted state
+# and publish it to the gh-pages branch. Not named "*-check.yaml" so the
+# aggregate does not count it as a life signal.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 12 * * 0"
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - name: render status page
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          STATUS_PAGE_DOMAIN: ${{ vars.STATUS_PAGE_DOMAIN }}
+          STATUS_PAGE_NOTE: ${{ vars.STATUS_PAGE_NOTE }}
+        run: go run ./statuspage --out public
+      - name: publish to gh-pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          cd public
+          git init -q
+          git add -A
+          git -c user.name="github-actions[bot]" \
+              -c user.email="github-actions[bot]@users.noreply.github.com" \
+              commit -q -m "status page: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:gh-pages

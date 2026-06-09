@@ -1,0 +1,45 @@
+name: crypt sanity check
+
+# End-to-end validation of the encryption chain: the committed public key
+# (pubkey/operator.asc), the GPG_PRIVATE_KEY secret, and the lt-crypt tool
+# must round-trip a payload. A failure means the committed public key no
+# longer matches the private key in the secret.
+#
+# NOTE: this file is deliberately NOT named "*-check.yaml" — the aggregate
+# evaluator treats every "*-check.yaml" workflow as a life signal, and this
+# is infrastructure validation, not a life signal.
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+  schedule:
+    - cron: "0 4 * * 1"
+
+jobs:
+  roundtrip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - name: lt-crypt encrypt -> decrypt round-trip
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${GPG_PRIVATE_KEY:-}" ]; then
+            echo "::error::GPG_PRIVATE_KEY secret is not set"
+            exit 1
+          fi
+          plaintext="life-tracker crypt sanity $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          printf '%s' "$plaintext" > plain.txt
+          go run ./cmd/lt-crypt encrypt --pubkey pubkey/operator.asc --in plain.txt --out cipher.gpg
+          go run ./cmd/lt-crypt decrypt --in cipher.gpg --out decrypted.txt
+          if ! diff -q plain.txt decrypted.txt >/dev/null; then
+            echo "::error::crypt round-trip MISMATCH — pubkey/operator.asc does not match the GPG_PRIVATE_KEY secret"
+            exit 1
+          fi
+          echo "crypt round-trip OK — pubkey/operator.asc matches the GPG_PRIVATE_KEY secret"

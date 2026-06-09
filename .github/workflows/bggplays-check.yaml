@@ -1,0 +1,16 @@
+name: I am alive check Boardgamegeek
+on: 
+  workflow_dispatch:
+  schedule:
+  - cron: "0 3 * * *"
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+      - run: |
+          go run ./signal/bggplays
+        env:
+          BGG_TOKEN: ${{ secrets.BGG_TOKEN }}

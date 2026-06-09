@@ -1,0 +1,35 @@
+name: trigger
+
+# Polls the dead-man-switch state daily and self-gates: it only fires the
+# death actions when the aggregate has marked the state trigger_ready.
+# Deliberately not named "*-check.yaml" so the aggregate does not count it
+# as a life signal.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  fire:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - run: go run ./trigger
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          # email death-action handler (#6) configuration
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          SMTP_FROM: ${{ secrets.SMTP_FROM }}
+          OPERATOR_NAME: ${{ vars.OPERATOR_NAME }}
+          EMAIL_SEND_DELAY_SECONDS: ${{ vars.EMAIL_SEND_DELAY_SECONDS }}

@@ -1,0 +1,36 @@
+name: keep-alive digest
+
+# Weekly digest email to the operator: it keeps the SMTP account warm
+# (surviving the 2-year inactivity-closure policy), surfaces SMTP/credential
+# rot while the operator can still fix it, and reports the dead-man-switch
+# state. Not a "*-check.yaml" — not a life signal.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 12 * * 1"
+
+permissions:
+  contents: read
+  actions: read # read workflow run history for the per-signal summary
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - run: go run ./digest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          EMAIL_SUBJECT: "life-tracker keep-alive digest"
+          DIGEST_WINDOW_DAYS: ${{ vars.DIGEST_WINDOW_DAYS }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          SMTP_FROM: ${{ secrets.SMTP_FROM }}
+          OPERATOR_NAME: ${{ vars.OPERATOR_NAME }}

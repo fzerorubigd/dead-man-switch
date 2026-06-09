@@ -1,0 +1,12 @@
+name: I am alive check Failed always
+on: 
+  workflow_dispatch:
+  schedule:
+  - cron: "0 0 * * 1"
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          false

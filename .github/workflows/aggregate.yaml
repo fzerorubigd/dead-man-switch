@@ -1,0 +1,32 @@
+name: aggregate evaluator
+
+on:
+  workflow_dispatch:
+    inputs:
+      reset:
+        description: "Reset the dead-man-switch state to alive (operator escape hatch)"
+        type: boolean
+        default: false
+  schedule:
+    - cron: "0 0 * * 6"
+
+# The evaluator reads workflow run history (actions: read) and persists
+# state.json onto the orphan `state` branch via the token (contents: write).
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - run: go run ./aggregate
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RESET: ${{ inputs.reset }}
+          THRESHOLD_FAILS_DAYS: "30"
+          WAITING_PERIOD_DAYS: "30"

@@ -1,0 +1,6 @@
+# Never commit private key material. The death-key private key lives
+# only in the GPG_PRIVATE_KEY GitHub secret, never in the repo.
+*private*.asc
+*secret*.asc
+*.pem
+*.key
