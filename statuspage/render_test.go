@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fzerorubigd/life-tracker/internal/dmstate"
+	"github.com/fzerorubigd/dead-man-switch/internal/dmstate"
 )
 
 func TestStatusView(t *testing.T) {
@@ -33,7 +33,7 @@ func TestStatusView(t *testing.T) {
 // status with the right label/colour-class and always carries the
 // gh-pages fallback URL.
 func TestRenderPage_PerStatus(t *testing.T) {
-	const fallback = "https://fzerorubigd.github.io/life-tracker/"
+	const fallback = "https://fzerorubigd.github.io/dead-man-switch/"
 	for _, s := range []dmstate.Status{dmstate.StatusAlive, dmstate.StatusWaiting, dmstate.StatusTriggerReady, ""} {
 		label, class, desc := statusView(s)
 		html, err := RenderPage(PageData{

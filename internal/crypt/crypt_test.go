@@ -16,7 +16,7 @@ import (
 // with it.
 func genKeypair(t *testing.T, passphrase []byte) (pub, priv []byte) {
 	t.Helper()
-	entity, err := openpgp.NewEntity("Test Operator", "life-tracker test", "test@example.com", nil)
+	entity, err := openpgp.NewEntity("Test Operator", "dead-man-switch test", "test@example.com", nil)
 	if err != nil {
 		t.Fatalf("NewEntity: %v", err)
 	}

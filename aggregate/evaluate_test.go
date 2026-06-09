@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fzerorubigd/life-tracker/internal/dmstate"
+	"github.com/fzerorubigd/dead-man-switch/internal/dmstate"
 )
 
 func ptr(t time.Time) *time.Time { return &t }

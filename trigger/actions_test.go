@@ -11,7 +11,7 @@ import (
 	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/ProtonMail/go-crypto/openpgp/armor"
 
-	"github.com/fzerorubigd/life-tracker/internal/crypt"
+	"github.com/fzerorubigd/dead-man-switch/internal/crypt"
 )
 
 func TestLoadActions(t *testing.T) {

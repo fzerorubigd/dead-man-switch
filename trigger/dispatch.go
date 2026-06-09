@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/fzerorubigd/life-tracker/handler"
+	"github.com/fzerorubigd/dead-man-switch/handler"
 )
 
 // Action is one entry in the death-action list: which handler to run and

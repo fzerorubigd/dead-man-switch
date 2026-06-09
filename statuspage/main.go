@@ -17,7 +17,7 @@ import (
 	"github.com/google/go-github/v53/github"
 	"golang.org/x/oauth2"
 
-	"github.com/fzerorubigd/life-tracker/internal/dmstate"
+	"github.com/fzerorubigd/dead-man-switch/internal/dmstate"
 )
 
 func getEnvDefault(e, def string) string {
@@ -32,7 +32,7 @@ func main() {
 	flag.Parse()
 
 	owner := getEnvDefault("REPOSITORY_OWNER", "fzerorubigd")
-	repo := getEnvDefault("REPOSITORY_NAME", "life-tracker")
+	repo := getEnvDefault("REPOSITORY_NAME", "dead-man-switch")
 	domain := os.Getenv("STATUS_PAGE_DOMAIN")
 	note := os.Getenv("STATUS_PAGE_NOTE")
 

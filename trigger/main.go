@@ -15,13 +15,13 @@ import (
 	"github.com/google/go-github/v53/github"
 	"golang.org/x/oauth2"
 
-	"github.com/fzerorubigd/life-tracker/handler"
-	"github.com/fzerorubigd/life-tracker/internal/crypt"
-	"github.com/fzerorubigd/life-tracker/internal/dmstate"
+	"github.com/fzerorubigd/dead-man-switch/handler"
+	"github.com/fzerorubigd/dead-man-switch/internal/crypt"
+	"github.com/fzerorubigd/dead-man-switch/internal/dmstate"
 
 	// Concrete death-action handlers register themselves via blank
 	// imports here as they land.
-	_ "github.com/fzerorubigd/life-tracker/handler/email"
+	_ "github.com/fzerorubigd/dead-man-switch/handler/email"
 )
 
 func getEnvDefault(e, def string) string {
@@ -33,7 +33,7 @@ func getEnvDefault(e, def string) string {
 
 func main() {
 	owner := getEnvDefault("REPOSITORY_OWNER", "fzerorubigd")
-	repo := getEnvDefault("REPOSITORY_NAME", "life-tracker")
+	repo := getEnvDefault("REPOSITORY_NAME", "dead-man-switch")
 	actionsFile := getEnvDefault("ACTIONS_FILE", defaultActionsFile)
 	privKey := []byte(os.Getenv("GPG_PRIVATE_KEY"))
 	passphrase := []byte(os.Getenv("GPG_PASSPHRASE"))

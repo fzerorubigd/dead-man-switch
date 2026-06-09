@@ -17,12 +17,12 @@ import (
 	"github.com/google/go-github/v53/github"
 	"golang.org/x/oauth2"
 
-	"github.com/fzerorubigd/life-tracker/handler"
-	"github.com/fzerorubigd/life-tracker/internal/crypt"
-	"github.com/fzerorubigd/life-tracker/internal/dmstate"
+	"github.com/fzerorubigd/dead-man-switch/handler"
+	"github.com/fzerorubigd/dead-man-switch/internal/crypt"
+	"github.com/fzerorubigd/dead-man-switch/internal/dmstate"
 
 	// Register the email handler so handler.Get("email") resolves.
-	_ "github.com/fzerorubigd/life-tracker/handler/email"
+	_ "github.com/fzerorubigd/dead-man-switch/handler/email"
 )
 
 var signalPattern = regexp.MustCompile("-check.yaml$")
@@ -50,7 +50,7 @@ type selfRecipient struct {
 
 func main() {
 	owner := getEnvDefault("REPOSITORY_OWNER", "fzerorubigd")
-	repo := getEnvDefault("REPOSITORY_NAME", "life-tracker")
+	repo := getEnvDefault("REPOSITORY_NAME", "dead-man-switch")
 	windowDays := envIntDefault("DIGEST_WINDOW_DAYS", 30)
 	selfBlob := getEnvDefault("OPERATOR_SELF_BLOB", "operator-self.gpg")
 	privKey := []byte(os.Getenv("GPG_PRIVATE_KEY"))

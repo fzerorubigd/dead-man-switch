@@ -71,7 +71,7 @@ func RenderDigest(d DigestData) (string, error) {
 	return buf.String(), nil
 }
 
-const digestText = `life-tracker keep-alive digest
+const digestText = `dead-man-switch keep-alive digest
 
 Status: {{.Status}}
 Last sign of life: {{.LastSignOfLife}}

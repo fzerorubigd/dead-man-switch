@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fzerorubigd/life-tracker/handler"
+	"github.com/fzerorubigd/dead-man-switch/handler"
 )
 
 func TestRegisteredAsEmail(t *testing.T) {

@@ -26,7 +26,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-          EMAIL_SUBJECT: "life-tracker keep-alive digest"
+          EMAIL_SUBJECT: "dead-man-switch keep-alive digest"
           DIGEST_WINDOW_DAYS: ${{ vars.DIGEST_WINDOW_DAYS }}
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
