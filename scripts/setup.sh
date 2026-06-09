@@ -39,6 +39,39 @@ ask_secret() {
   echo "  ✓ secret $name set"
 }
 
+# ask_visible_secret is the same as ask_secret but echoes input back to the
+# terminal — for non-sensitive secret values (e.g. another repo's
+# owner/name) where typing blind invites typos.
+ask_visible_secret() {
+  local name="$1" prompt="$2"
+  local value
+  read -r -p "$prompt: " value
+  if [ -z "$value" ]; then
+    echo "  (skipped $name)"
+    return 0
+  fi
+  printf '%s' "$value" | gh secret set "$name" --repo "$REPO" >/dev/null
+  echo "  ✓ secret $name set"
+}
+
+# ask_file_secret prompts for a path to a file whose contents become the
+# secret value (e.g. an SSH or GPG private key). Empty path skips.
+ask_file_secret() {
+  local name="$1" prompt="$2"
+  local path
+  read -r -p "$prompt (path, empty to skip): " path
+  if [ -z "$path" ]; then
+    echo "  (skipped $name)"
+    return 0
+  fi
+  if [ ! -r "$path" ]; then
+    echo "  ✗ $path is not readable; skipping $name" >&2
+    return 0
+  fi
+  gh secret set "$name" --repo "$REPO" < "$path" >/dev/null
+  echo "  ✓ secret $name set from $path"
+}
+
 ask_var() {
   local name="$1" prompt="$2" default="${3:-}"
   local value display_default=""
@@ -54,10 +87,13 @@ ask_var() {
 }
 
 echo "=== required secrets ==="
-ask_secret SMTP_HOST       "SMTP host (e.g. smtp.gmail.com)"
-ask_secret SMTP_USERNAME   "SMTP username (gmail address)"
-ask_secret SMTP_PASSWORD   "SMTP password (gmail app password, hidden)"
-ask_secret SMTP_FROM       "SMTP From: address (often same as username)"
+ask_secret      SMTP_HOST         "SMTP host (e.g. smtp.gmail.com)"
+ask_secret      SMTP_USERNAME     "SMTP username (gmail address)"
+ask_secret      SMTP_PASSWORD     "SMTP password (gmail app password, hidden)"
+ask_secret      SMTP_FROM         "SMTP From: address (often same as username)"
+ask_visible_secret BLOBS_REPO     "Private blobs repo (owner/name, where the encrypted payloads live)"
+ask_file_secret BLOBS_DEPLOY_KEY  "BLOBS_DEPLOY_KEY ssh private key file"
+ask_file_secret GPG_PRIVATE_KEY   "GPG_PRIVATE_KEY armored private key file"
 
 echo
 echo "=== required variables ==="
@@ -74,5 +110,4 @@ ask_var STATUS_PAGE_DOMAIN       "Status page custom domain"       ""
 ask_var STATUS_PAGE_NOTE         "Status page operator note"       ""
 
 echo
-echo "done. GPG_PRIVATE_KEY is assumed already set; if not:"
-echo "  gh secret set GPG_PRIVATE_KEY --repo $REPO < your-private-key.asc"
+echo "done."
