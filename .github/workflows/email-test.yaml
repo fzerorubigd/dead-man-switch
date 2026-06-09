@@ -17,11 +17,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - uses: actions/checkout@v6
+        with:
+          repository: ${{ secrets.BLOBS_REPO }}
+          ssh-key: ${{ secrets.BLOBS_DEPLOY_KEY }}
+          path: blobs
+          ref: main
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
       - name: send test emails to the operator
         env:
+          ACTIONS_FILE: blobs/actions.json
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           TRIGGER_TEST_MODE: "true"
@@ -36,7 +43,7 @@ jobs:
           set -euo pipefail
           # The operator's own address comes from the encrypted operator-self
           # blob; mask it so it never lands in the logs.
-          EMAIL_TEST_TO="$(go run ./cmd/lt-crypt decrypt --in operator-self.gpg | jq -r '.email')"
+          EMAIL_TEST_TO="$(go run ./cmd/lt-crypt decrypt --in blobs/operator-self.gpg | jq -r '.email')"
           echo "::add-mask::$EMAIL_TEST_TO"
           test -n "$EMAIL_TEST_TO"
           EMAIL_TEST_TO="$EMAIL_TEST_TO" go run ./trigger
