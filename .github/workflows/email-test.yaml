@@ -23,7 +23,7 @@ jobs:
           ssh-key: ${{ secrets.BLOBS_DEPLOY_KEY }}
           path: blobs
           ref: main
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
       - name: send test emails to the operator
