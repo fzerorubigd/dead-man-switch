@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>am I alive?</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+         font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: #11151a; color: #e7edf3; }
+  .card { max-width: 36rem; padding: 2.5rem; text-align: center; }
+  .status { font-size: clamp(2.5rem, 9vw, 5rem); font-weight: 800; letter-spacing: -0.02em; margin: 0 0 0.5rem; }
+  .status.alive { color: #43d17a; }
+  .status.waiting { color: #f5b73d; }
+  .status.triggered { color: #ef5350; }
+  .status.unknown { color: #9aa6b2; }
+  .desc { font-size: 1.15rem; color: #c2ccd6; margin: 0 0 2rem; }
+  .meta { font-size: 0.95rem; color: #8b97a3; line-height: 1.7; }
+  .meta b { color: #c2ccd6; font-weight: 600; }
+  .note { margin: 1.5rem 0; padding: 1rem 1.25rem; border-left: 3px solid #3a4750; background: #1a2027;
+          text-align: left; border-radius: 4px; color: #c2ccd6; white-space: pre-wrap; }
+  a { color: #6ab0ff; }
+  .foot { margin-top: 2rem; font-size: 0.8rem; color: #6b7680; }
+</style>
+</head>
+<body>
+  <main class="card">
+    <h1 class="status alive">Alive</h1>
+    <p class="desc">A life signal was seen recently.</p>
+    <div class="note">this too shall pass</div>
+    <div class="meta">
+      <div>Last life signal: <b>Fri, 31 Jul 2026 05:58:32 UTC</b></div>
+      <div>Page generated: <b>Sun, 02 Aug 2026 13:13:52 UTC</b></div>
+      
+    </div>
+    <p class="foot">
+      If this address ever stops resolving, this page also lives at
+      <a href="https://fzerorubigd.github.io/dead-man-switch/">https://fzerorubigd.github.io/dead-man-switch/</a>.
+    </p>
+  </main>
+</body>
+</html>
